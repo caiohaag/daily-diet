@@ -1,0 +1,29 @@
+{
+  "name": "daily-diet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^5.8.4",
+    "@fastify/cookie": "^11.0.2",
+    "dotenv": "^17.3.1",
+    "knex": "^3.2.5",    
+    "sqlite3": "^6.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "@rocketseat/eslint-config": "^2.2.2",
+    "@types/node": "^25.5.0",    
+    "eslint": "^8.57.1"
+  }
+}
