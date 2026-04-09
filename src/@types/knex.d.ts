@@ -9,5 +9,10 @@ declare module 'knex/types/tables' {
       password_hash: string
       created_at: date
     }
+    sessions: {
+      id: string
+      user_id: string
+      created_at: date
+    }
   }
 }
