@@ -1,21 +1,16 @@
-import { it, afterAll, beforeAll, beforeEach, describe } from 'vitest'
+import { it, afterAll, beforeAll, describe } from 'vitest'
 import { app } from '../src/app'
-import { execSync } from 'node:child_process'
-import { knex } from '../src/database'
 import request from 'supertest'
+import { knex } from '../src/database'
 
 describe('Users routes', () => {
   beforeAll(async () => {
-    app.ready()
-    execSync('npm run knex migrate:latest')
+    await app.ready()
+    await knex.migrate.latest()
   })
 
   afterAll(async () => {
     await app.close()
-  })
-
-  beforeEach(async () => {
-    await knex('users').delete()
   })
 
   it('Should be able to create a new user', async () => {
