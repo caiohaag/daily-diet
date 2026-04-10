@@ -32,13 +32,15 @@ export async function userRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcrypt.hash(password, 10)
 
-    // TODO: try catch
-
-    await knex('users').insert({
-      id: crypto.randomUUID(),
-      email,
-      password_hash: passwordHash,
-    })
+    try {
+      await knex('users').insert({
+        id: crypto.randomUUID(),
+        email,
+        password_hash: passwordHash,
+      })
+    } catch {
+      return reply.status(500).send({ error: 'Database error' })
+    }
 
     return reply.status(201).send({
       message: 'Usuário criado com sucesso',
@@ -67,11 +69,14 @@ export async function userRoutes(app: FastifyInstance) {
 
     const sessionId = crypto.randomUUID()
 
-    // TODO: try catch
-    await knex('sessions').insert({
-      id: sessionId,
-      user_id: user.id,
-    })
+    try {
+      await knex('sessions').insert({
+        id: sessionId,
+        user_id: user.id,
+      })
+    } catch {
+      return reply.status(500).send({ error: 'Database error' })
+    }
 
     reply
       .cookie('sessionId', sessionId, {

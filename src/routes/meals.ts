@@ -4,6 +4,14 @@ import z from 'zod'
 import { parseDate } from '../utils/parseDate'
 import { countDietStreak } from '../utils/countDietStreak'
 
+const mealSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  date: z.string(),
+  time: z.string(),
+  isDiet: z.boolean(),
+})
+
 export async function mealsRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (req, reply) => {
     const sessionId = req.cookies.sessionId
@@ -38,6 +46,10 @@ export async function mealsRoutes(app: FastifyInstance) {
     const { id } = getMealParamsSchema.parse(req.params)
     const meal = await knex('meals').where({ user_id: req.userId, id }).first()
 
+    if (!meal) {
+      return reply.status(404).send('Refeição não encontrada')
+    }
+
     return reply.send(meal)
   })
 
@@ -68,31 +80,70 @@ export async function mealsRoutes(app: FastifyInstance) {
   })
 
   app.post('/', async (req, reply) => {
-    const createMealSchema = z.object({
-      name: z.string(),
-      description: z.string().optional(),
-      date: z.string(),
-      time: z.string(),
-      isDiet: z.boolean(),
-    })
-
-    const { name, description, date, time, isDiet } = createMealSchema.parse(
-      req.body,
-    )
+    const { name, description, date, time, isDiet } = mealSchema.parse(req.body)
 
     const dateTime = parseDate(date, time)
 
-    await knex('meals').insert({
-      id: crypto.randomUUID(),
-      user_id: req.userId,
-      name,
-      description,
-      date_time: dateTime,
-      is_diet: isDiet,
-    })
+    try {
+      await knex('meals').insert({
+        id: crypto.randomUUID(),
+        user_id: req.userId,
+        name,
+        description,
+        date_time: dateTime,
+        is_diet: isDiet,
+      })
+    } catch {
+      return reply.status(500).send({ error: 'Database error' })
+    }
 
     return reply.status(201).send({
       message: 'Refeição criada com sucesso',
     })
+  })
+
+  app.put('/:id', async (req, reply) => {
+    const paramsSchema = z.object({ id: z.uuid() })
+    const { id } = paramsSchema.parse(req.params)
+    const { name, description, date, time, isDiet } = mealSchema.parse(req.body)
+
+    const dateTime = parseDate(date, time)
+
+    try {
+      const updatedMeal = await knex('meals').where({ id }).update({
+        name,
+        description,
+        date_time: dateTime,
+        is_diet: isDiet,
+        modified_at: knex.fn.now(),
+      })
+      if (updatedMeal === 0) {
+        return reply
+          .status(404)
+          .send({ error: 'Não foi encontrada a refeição com este ID' })
+      }
+    } catch {
+      return reply.status(500).send({ error: 'Database error' })
+    }
+
+    return reply.status(204).send()
+  })
+
+  app.delete('/:id', async (req, reply) => {
+    const paramsSchema = z.object({ id: z.uuid() })
+    const { id } = paramsSchema.parse(req.params)
+
+    try {
+      const deletedMeal = await knex('meals').where({ id }).delete()
+      if (deletedMeal === 0) {
+        return reply
+          .status(404)
+          .send({ error: 'Não foi encontrada a refeição com este ID' })
+      }
+    } catch {
+      return reply.status(500).send({ error: 'Database error' })
+    }
+
+    return reply.status(204).send()
   })
 }

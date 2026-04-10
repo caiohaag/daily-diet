@@ -106,6 +106,46 @@ describe('Meals routes', () => {
       .expect(201)
   })
 
+  it('Should be able to delete a meal', async () => {
+    await agent.post('/meals').send({
+      name: 'Almoço',
+      description: 'Arroz, feijão e carne',
+      date: '09/04/2026',
+      time: '12:00',
+      isDiet: true,
+    })
+
+    const listMealsResponse = await agent.get('/meals')
+
+    const { id } = listMealsResponse.body.meals[0]
+
+    await agent.delete(`/meals/${id}`).expect(204)
+  })
+
+  it('Should be able to edit a meal', async () => {
+    await agent.post('/meals').send({
+      name: 'Almoço',
+      description: 'Arroz, feijão e carne',
+      date: '09/04/2026',
+      time: '12:00',
+      isDiet: true,
+    })
+
+    const listMealsResponse = await agent.get('/meals')
+
+    const { id } = listMealsResponse.body.meals[0]
+    await agent
+      .put(`/meals/${id}`)
+      .send({
+        name: 'Jantar',
+        description: 'Arroz, feijão e carne',
+        date: '09/04/2026',
+        time: '21:00',
+        isDiet: true,
+      })
+      .expect(204)
+  })
+
   it('Should not be able to list meals when not logged', async () => {
     await agent.post('/users/logout').send()
 
